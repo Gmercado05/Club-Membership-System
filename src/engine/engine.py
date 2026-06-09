@@ -330,6 +330,12 @@ def process_request(user_input: str) -> dict:
                 if key in {"name", "student_id", "major", "year", "start_date", "expiration_date"}
                 and str(value).strip()
             }
+            if "expiration_date" in updates:
+                expiration = _parse_date(updates["expiration_date"])
+                if expiration is None:
+                    return _result("validation_error", "Invalid expiration date.")
+                updates["expiration_date"] = _format_date(expiration)
+                updates["membership_status"] = "active" if expiration >= date.today() else "expired"
             result = update_member(member_lookup, updates)
             if result == "success":
                 return _result("success", "Member updated.")

@@ -133,6 +133,16 @@ def test_get_stats_by_status_counts_blank_status_as_unknown():
         assert get_stats_by_status() == {"active": 1, "expired": 1, "(Unknown)": 1}
 
 
+def test_get_stats_by_status_prefers_expiration_date_over_stale_status():
+    members = [
+        {"expiration_date": "2099-01-01", "membership_status": "expired"},
+        {"expiration_date": "2000-01-01", "membership_status": "active"},
+    ]
+
+    with patch("src.storage.storage_handler_extended.get_members", return_value=members):
+        assert get_stats_by_status() == {"active": 1, "expired": 1}
+
+
 def test_search_members_filters_case_insensitive_substrings_and_empty_filters():
     members = [
         {"name": "Alice Chen", "email": "alice@ucr.edu", "major": "Computer Science"},

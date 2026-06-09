@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import date, datetime
+
 import gspread
 
 from src.storage.sheet_client import open_sheet
@@ -155,12 +157,24 @@ def get_member_by_lookup(member_lookup: str) -> dict | None:
 
 
 def get_stats_by_status() -> dict:
-    """Count stored members by membership status."""
+    """Count stored members by calculated membership status."""
     try:
         stats: dict = {}
         for member in get_members():
-            status = str(member.get("membership_status") or "").strip() or "(Unknown)"
+            status = _calculated_membership_status(member)
             stats[status] = stats.get(status, 0) + 1
         return stats
     except Exception:
         return {}
+
+
+def _calculated_membership_status(member: dict) -> str:
+    """Calculate status from expiration date, falling back to stored status."""
+    expiration_text = str(member.get("expiration_date") or "").strip()
+    for fmt in ("%Y-%m-%d", "%m/%d/%Y", "%m-%d-%Y"):
+        try:
+            expiration = datetime.strptime(expiration_text, fmt).date()
+            return "active" if expiration >= date.today() else "expired"
+        except ValueError:
+            continue
+    return str(member.get("membership_status") or "").strip() or "(Unknown)"

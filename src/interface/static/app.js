@@ -1,3 +1,4 @@
+/// Client-side JavaScript for the club membership system interface.
 const form = document.querySelector("#request-form");
 const input = document.querySelector("#message-input");
 const messages = document.querySelector("#messages");

@@ -31,6 +31,21 @@ def test_update_member_success():
     assert result["status"] == "success"
 
 
+def test_update_expiration_date_also_updates_membership_status():
+    with patch("src.engine.engine.genai.GenerativeModel") as mock_model_class:
+        mock_model_class.return_value = mock_gemini_response(
+            intent="update",
+            data={"email": "alice@ucr.edu", "expiration_date": "2099-01-01"},
+            complete=True,
+        )
+        with patch("src.engine.engine.update_member", return_value="success") as mock_update:
+            result = process_request("Update alice@ucr.edu to expiration date 2099-01-01")
+
+    assert result["status"] == "success"
+    assert mock_update.call_args.args[1]["expiration_date"] == "2099-01-01"
+    assert mock_update.call_args.args[1]["membership_status"] == "active"
+
+
 def test_report_returns_stats():
     with patch("src.engine.engine.genai.GenerativeModel") as mock_model_class:
         mock_model_class.return_value = mock_gemini_response(
