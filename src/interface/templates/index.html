@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Club Membership System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="workspace" aria-labelledby="app-title">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Club membership workspace</p>
+            <h1 id="app-title">Club Membership System</h1>
+          </div>
+          <div class="status-pill" id="status-pill">Ready</div>
+        </header>
+
+        <section class="quick-actions" aria-label="Example requests">
+          <button type="button" data-command="Show me all registered members.">List</button>
+          <button type="button" data-command="Give me a report by membership status.">Report</button>
+          <button type="button" data-sample-status>Status</button>
+          <button type="button" data-sample-register>Sample Register</button>
+        </section>
+
+        <div class="content-grid">
+          <aside class="command-reference" aria-label="Available command types">
+            <h2>Commands</h2>
+            <ul>
+              <li>
+                <strong>Register</strong>
+                <span>Register Maya Patel, maya@example.com, Biology major, senior.</span>
+              </li>
+              <li>
+                <strong>List</strong>
+                <span>Show me all registered members.</span>
+              </li>
+              <li>
+                <strong>Search</strong>
+                <span>Show me Data Science majors.</span>
+              </li>
+              <li>
+                <strong>Status</strong>
+                <span>Check membership status for john@example.com.</span>
+              </li>
+              <li>
+                <strong>Renew</strong>
+                <span>Renew john@example.com until 2027-06-01.</span>
+              </li>
+              <li>
+                <strong>Update</strong>
+                <span>Update maya@example.com to year Graduate.</span>
+              </li>
+              <li>
+                <strong>Remove</strong>
+                <span>Remove carlos@example.com.</span>
+              </li>
+              <li>
+                <strong>Report</strong>
+                <span>Give me a report by membership status.</span>
+              </li>
+            </ul>
+          </aside>
+
+          <section class="conversation-panel" aria-label="Assistant conversation">
+            <div class="messages" id="messages" aria-live="polite">
+              <article class="message assistant">
+                <span class="speaker">Assistant</span>
+                <p>Type a membership request below.</p>
+              </article>
+            </div>
+          </section>
+        </div>
+
+        <form class="composer" id="request-form">
+          <label for="message-input">Request</label>
+          <div class="input-row">
+            <textarea
+              id="message-input"
+              name="message"
+              rows="3"
+              placeholder="Register Alice Chen, alice@example.com, Computer Science major, sophomore, start date 2026-06-01."
+              required
+            ></textarea>
+            <button type="submit" id="send-button">Send</button>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+  </body>
+</html>
