@@ -1,6 +1,6 @@
 # Club Membership System
 
-The Club Membership System is a command-line and web application for managing student club memberships through natural-language requests. It uses Gemini to extract intent and fields local validation rules to protect write operations and Google Sheets as the persistence layer.
+The Club Membership System is a command-line and web application for managing student club memberships through natural-language requests. It uses Gemini to extract intent and fields, local validation rules to protect write operations, and Google Sheets as the persistence layer.
 
 ## Rubric Paths
 
@@ -8,9 +8,9 @@ The Club Membership System is a command-line and web application for managing st
 - Tests: `tests/`
 - Requirement specification: `FUNCTIONALITY.md`
 - Design and interface contract: `CONTRACT.md`
-- Lab 4 design worksheet format: `LAB4_DESIGN.md`
+- Lab 4 worksheet-style design support: `LAB4_DESIGN.md`
 - Setup and execution guide: `SETUP_GUIDE.md`
-- Demo video:
+- Demo video: https://youtu.be/syREus83ufg?si=QwuxOx4CePY86Ptx
 
 ## Features
 
