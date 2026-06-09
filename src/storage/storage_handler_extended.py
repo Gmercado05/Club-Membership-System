@@ -28,6 +28,28 @@ def _open_sheet() -> gspread.Worksheet:
     return open_sheet()
 
 
+def _find_member_row(sheet: gspread.Worksheet, member_lookup: str) -> int | None:
+    """Return the row number matching an email, member ID, or student ID."""
+    lookup = str(member_lookup).strip().lower()
+    if not lookup:
+        return None
+
+    headers = sheet.row_values(1)
+    if headers:
+        lookup_headers = ("email", "id", "student_id")
+        records = sheet.get_all_records()
+        for row_index, record in enumerate(records, start=2):
+            for header in lookup_headers:
+                if header in headers and str(record.get(header, "")).strip().lower() == lookup:
+                    return row_index
+        return None
+
+    cell = sheet.find(str(member_lookup).strip(), in_column=2)
+    if cell is None or cell.row == 1:
+        return None
+    return cell.row
+
+
 def get_members() -> list[dict]:
     """Fetch all stored club member records.
 
@@ -59,20 +81,10 @@ def delete_member(email: str) -> str:
         if not email:
             return "not_found"
 
-        headers = sheet.row_values(1)
-        cell = None
-        for lookup_header in ("email", "id", "student_id"):
-            if lookup_header in headers:
-                cell = sheet.find(email, in_column=headers.index(lookup_header) + 1)
-                if cell is not None:
-                    break
-        if cell is None and not headers:
-            cell = sheet.find(email, in_column=2)
-        if cell is None:
+        row_index = _find_member_row(sheet, email)
+        if row_index is None:
             return "not_found"
-        if cell.row == 1:
-            return "not_found"
-        sheet.delete_rows(cell.row)
+        sheet.delete_rows(row_index)
         return "success"
     except Exception:
         return "error"

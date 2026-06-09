@@ -230,8 +230,9 @@ def _format_date(value: date) -> str:
 def _normalize_member_data(data: dict) -> dict:
     """Fill membership defaults for a registration payload."""
     normalized = {key: str(value).strip() for key, value in data.items() if value is not None}
-    email = normalized.get("email", "")
+    email = normalized.get("email", "").lower()
     if email:
+        normalized["email"] = email
         normalized.setdefault("id", f"member_{email.split('@', 1)[0].lower()}")
 
     start_date = _parse_date(normalized.get("start_date", "")) or date.today()
@@ -382,8 +383,9 @@ def process_request(user_input: str) -> dict:
             if current_expiration and new_expiration <= current_expiration:
                 return _result("validation_error", "New expiration date must be after the current expiration date.")
 
+            storage_lookup = str(member.get("email") or member.get("id") or member_lookup).strip()
             result = update_member(
-                member_lookup,
+                storage_lookup,
                 {
                     "expiration_date": _format_date(new_expiration),
                     "membership_status": "active",

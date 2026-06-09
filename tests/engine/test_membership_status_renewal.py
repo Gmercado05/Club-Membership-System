@@ -85,6 +85,31 @@ def test_renew_membership_updates_expiration_date():
     mock_update.assert_called_once()
 
 
+def test_renew_uses_stored_email_when_lookup_has_different_case():
+    member = {
+        "id": "member_john",
+        "name": "John Doe",
+        "email": "john@example.com",
+        "expiration_date": "2099-06-01",
+    }
+
+    with patch("src.engine.engine.genai.GenerativeModel") as mock_model_class:
+        mock_model_class.return_value = mock_gemini_response(
+            intent="renew",
+            data={"member_lookup": "John@example.com", "expiration_date": "2100-06-01"},
+            complete=True,
+        )
+        with patch("src.engine.engine.get_member_by_lookup", return_value=member):
+            with patch("src.engine.engine.update_member", return_value="success") as mock_update:
+                result = process_request("Renew John@example.com until 2100-06-01.")
+
+    assert result["status"] == "success"
+    mock_update.assert_called_once_with(
+        "john@example.com",
+        {"expiration_date": "2100-06-01", "membership_status": "active"},
+    )
+
+
 def test_renew_rejects_date_before_current_expiration():
     member = {
         "id": "member_alice",

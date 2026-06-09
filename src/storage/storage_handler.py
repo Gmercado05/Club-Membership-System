@@ -29,6 +29,28 @@ def _open_sheet() -> gspread.Worksheet:
     return open_sheet()
 
 
+def _find_member_row(sheet: gspread.Worksheet, member_lookup: str) -> int | None:
+    """Return the row number matching an email, member ID, or student ID."""
+    lookup = str(member_lookup).strip().lower()
+    if not lookup:
+        return None
+
+    headers = sheet.row_values(1)
+    if headers:
+        lookup_headers = ("email", "id", "student_id")
+        records = sheet.get_all_records()
+        for row_index, record in enumerate(records, start=2):
+            for header in lookup_headers:
+                if header in headers and str(record.get(header, "")).strip().lower() == lookup:
+                    return row_index
+        return None
+
+    cell = sheet.find(str(member_lookup).strip(), in_column=2)
+    if cell is None or cell.row == 1:
+        return None
+    return cell.row
+
+
 def save_member(member_data: dict) -> str:
     """Save a new club member row to Google Sheets.
 
@@ -52,6 +74,9 @@ def save_member(member_data: dict) -> str:
         for record in existing_records:
             if str(record.get("email", "")).strip().lower() == email_lower:
                 return "exists"
+
+        member_data = dict(member_data)
+        member_data["email"] = email_lower
 
         headers = sheet.row_values(1)
         if headers:
@@ -91,18 +116,9 @@ def update_member(email: str, updates: dict) -> str:
             return "error"
 
         headers = sheet.row_values(1)
-        cell = None
-        for lookup_header in ("email", "id", "student_id"):
-            if lookup_header in headers:
-                cell = sheet.find(email, in_column=headers.index(lookup_header) + 1)
-                if cell is not None:
-                    break
-        if cell is None and not headers:
-            cell = sheet.find(email, in_column=2)
-        if cell is None or cell.row == 1:
+        row_index = _find_member_row(sheet, email)
+        if row_index is None:
             return "not_found"
-
-        row_index = cell.row
 
         for key, val in clean_updates.items():
             if key in headers:

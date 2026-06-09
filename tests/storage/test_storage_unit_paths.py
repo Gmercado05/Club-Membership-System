@@ -53,6 +53,16 @@ def test_save_member_returns_error_when_append_fails():
     assert result == "error"
 
 
+def test_save_member_stores_email_in_lowercase():
+    sheet = FakeStorageSheet()
+
+    with patch("src.storage.storage_handler._open_sheet", return_value=sheet):
+        result = save_member({"name": "Alice", "email": "ALICE@UCR.EDU", "student_id": "1", "major": "CS"})
+
+    assert result == "success"
+    assert sheet.appended_rows == [["Alice", "alice@ucr.edu", "1", "CS"]]
+
+
 def test_update_member_returns_not_found_for_missing_or_header_match():
     with patch("src.storage.storage_handler._open_sheet", return_value=FakeStorageSheet(cell=None)):
         assert update_member("missing@ucr.edu", {"major": "CS"}) == "not_found"
@@ -63,10 +73,22 @@ def test_update_member_returns_not_found_for_missing_or_header_match():
 
 
 def test_update_member_updates_only_known_headers_and_pads_short_rows():
-    sheet = FakeStorageSheet(cell=SimpleNamespace(row=2))
+    records = [{"name": "Alice", "email": "alice@ucr.edu", "student_id": "1", "major": "CS"}]
+    sheet = FakeStorageSheet(records=records)
 
     with patch("src.storage.storage_handler._open_sheet", return_value=sheet):
         result = update_member("alice@ucr.edu", {"major": "Math", "unknown": "ignored"})
+
+    assert result == "success"
+    assert sheet.updated_cells == [(2, 4, "Math")]
+
+
+def test_update_member_matches_email_case_insensitively():
+    records = [{"name": "Alice", "email": "alice@ucr.edu", "student_id": "1", "major": "CS"}]
+    sheet = FakeStorageSheet(records=records)
+
+    with patch("src.storage.storage_handler._open_sheet", return_value=sheet):
+        result = update_member("ALICE@UCR.EDU", {"major": "Math"})
 
     assert result == "success"
     assert sheet.updated_cells == [(2, 4, "Math")]
@@ -90,13 +112,28 @@ def test_delete_member_handles_not_found_header_success_and_error():
     with patch("src.storage.storage_handler_extended._open_sheet", return_value=FakeStorageSheet(cell=header_cell)):
         assert delete_member("email") == "not_found"
 
-    sheet = FakeStorageSheet(cell=SimpleNamespace(row=3))
+    records = [
+        {"name": "Bob", "email": "bob@ucr.edu", "student_id": "2", "major": "Math"},
+        {"name": "Alice", "email": "alice@ucr.edu", "student_id": "1", "major": "CS"},
+    ]
+    sheet = FakeStorageSheet(records=records)
     with patch("src.storage.storage_handler_extended._open_sheet", return_value=sheet):
         assert delete_member("alice@ucr.edu") == "success"
     assert sheet.deleted_rows == [3]
 
     with patch("src.storage.storage_handler_extended._open_sheet", side_effect=RuntimeError("sheet down")):
         assert delete_member("alice@ucr.edu") == "error"
+
+
+def test_delete_member_matches_email_case_insensitively():
+    records = [{"name": "Alice", "email": "alice@ucr.edu", "student_id": "1", "major": "CS"}]
+    sheet = FakeStorageSheet(records=records)
+
+    with patch("src.storage.storage_handler_extended._open_sheet", return_value=sheet):
+        result = delete_member("ALICE@UCR.EDU")
+
+    assert result == "success"
+    assert sheet.deleted_rows == [2]
 
 
 def test_get_stats_by_major_counts_blank_major_as_unknown():
